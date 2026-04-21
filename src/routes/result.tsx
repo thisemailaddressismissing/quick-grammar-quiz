@@ -136,11 +136,25 @@ function ResultPage() {
                   </span>
                 </div>
                 <div className="space-y-3 p-4">
-                  <p className="text-sm font-medium text-foreground">{r.question}</p>
+                  <p className="text-sm font-medium leading-relaxed text-foreground">
+                    {r.question}
+                  </p>
 
                   <div className="space-y-1.5 text-sm">
-                    {opts ? (
-                      Object.entries(opts).map(([key, text]) => {
+                    {(() => {
+                      // Prefer options from local store, fall back to those returned by API
+                      const optionMap = (opts ?? r.options) as
+                        | Record<string, string>
+                        | undefined;
+                      if (!optionMap) {
+                        return (
+                          <div className="text-xs text-muted-foreground">
+                            Your answer: <strong>{userAns ?? "—"}</strong> · Correct:{" "}
+                            <strong>{r.correct_answer}</strong>
+                          </div>
+                        );
+                      }
+                      return Object.entries(optionMap).map(([key, text]) => {
                         const isCorrect = key === r.correct_answer;
                         const isUser = key === userAns;
                         return (
@@ -166,20 +180,44 @@ function ResultPage() {
                             )}
                           </div>
                         );
-                      })
-                    ) : (
-                      <div className="text-xs text-muted-foreground">
-                        Your answer: <strong>{userAns ?? "—"}</strong> · Correct:{" "}
-                        <strong>{r.correct_answer}</strong>
+                      });
+                    })()}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="rounded-lg border border-border bg-secondary/40 px-3 py-2">
+                      <div className="uppercase tracking-wider text-muted-foreground">
+                        Your answer
                       </div>
-                    )}
+                      <div
+                        className={`mt-0.5 font-semibold ${
+                          userAns
+                            ? correct
+                              ? "text-success"
+                              : "text-destructive"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        {userAns ?? "Skipped"}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-border bg-secondary/40 px-3 py-2">
+                      <div className="uppercase tracking-wider text-muted-foreground">
+                        Correct answer
+                      </div>
+                      <div className="mt-0.5 font-semibold text-success">
+                        {r.correct_answer}
+                      </div>
+                    </div>
                   </div>
 
                   {r.explanation && (
-                    <p className="rounded-lg bg-secondary/70 p-3 text-xs leading-relaxed text-foreground">
-                      <span className="font-semibold">Why: </span>
-                      {r.explanation}
-                    </p>
+                    <div className="rounded-lg bg-secondary/70 p-3 text-xs leading-relaxed text-foreground">
+                      <div className="mb-1 font-semibold uppercase tracking-wider text-muted-foreground">
+                        Explanation
+                      </div>
+                      <p>{r.explanation}</p>
+                    </div>
                   )}
                 </div>
               </li>
