@@ -48,7 +48,10 @@ function ResultPage() {
     setRetrying(true);
     try {
       const qs = await fetchQuestions(setup.topic, setup.difficulty);
+      examStore.reset();
+      examStore.setSetup(setup);
       examStore.setQuestions(qs.slice(0, 10));
+      examStore.setCurrentIndex(0);
       examStore.setAnswers({});
       navigate({ to: "/exam" });
     } catch (e) {

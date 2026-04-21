@@ -15,6 +15,20 @@ function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // If user refreshed mid-exam or after submitting, send them back to where they were.
+  useEffect(() => {
+    const result = examStore.getResult();
+    if (result) {
+      navigate({ to: "/result" });
+      return;
+    }
+    const qs = examStore.getQuestions();
+    const deadline = examStore.getDeadline();
+    if (qs && qs.length > 0 && deadline && deadline > Date.now()) {
+      navigate({ to: "/exam" });
+    }
+  }, [navigate]);
+
   // When countdown active, decrement each second; on 0, navigate
   useEffect(() => {
     if (countdown === null) return;
@@ -37,6 +51,8 @@ function Home() {
       examStore.reset();
       examStore.setSetup({ topic, difficulty });
       examStore.setQuestions(questions.slice(0, 10));
+      examStore.setCurrentIndex(0);
+      examStore.setAnswers({});
       setLoading(false);
       setCountdown(3);
     } catch (e) {
