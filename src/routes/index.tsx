@@ -119,8 +119,43 @@ function Home() {
           </ul>
         </div>
 
+        <section className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-foreground/70">
+            What's inside
+          </p>
+          <ul className="mt-3 space-y-3 text-sm text-foreground">
+            <li className="flex items-start gap-3">
+              <span className="mt-0.5 flex h-6 min-w-[2.5rem] items-center justify-center rounded-md bg-accent/15 px-1.5 font-display text-sm font-bold text-accent">
+                3650
+              </span>
+              <span className="text-muted-foreground">
+                <span className="text-foreground">questions available</span> right now — and
+                growing every week.
+              </span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="mt-0.5 flex h-6 min-w-[2.5rem] items-center justify-center rounded-md bg-accent/15 px-1.5 font-display text-sm font-bold text-accent">
+                20
+              </span>
+              <span className="text-muted-foreground">
+                <span className="text-foreground">topics to choose from</span>, covering all the
+                core grammar areas.
+              </span>
+            </li>
+          </ul>
+        </section>
+
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          No login. No tracking. Just practice.
+          Crafted by{" "}
+          <a
+            href="https://iamrakib.dev"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-accent underline-offset-4 hover:underline"
+          >
+            iamrakib.dev
+          </a>
+          {" "}· No login. No tracking. Just practice.
         </p>
       </div>
     </main>
