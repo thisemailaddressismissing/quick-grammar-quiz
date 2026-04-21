@@ -1,5 +1,5 @@
-// Lightweight in-memory store used to pass exam state between routes
-// without backend persistence. Cleared on hard refresh.
+// Persistent exam state via localStorage so accidental refreshes
+// keep the user on the same stage (setup / countdown / exam / result).
 
 import type { Question, SubmitResponse } from "./exam-api";
 
@@ -8,49 +8,104 @@ type ExamSetup = {
   difficulty: string;
 };
 
-type Store = {
+type Persisted = {
   setup: ExamSetup | null;
   questions: Question[] | null;
-  answers: Record<string, string> | null; // question_id -> A/B/C/D
+  answers: Record<string, string> | null;
   result: SubmitResponse | null;
+  // Absolute epoch ms when the timer should reach 0
+  deadline: number | null;
+  // Index of the question the user was on
+  currentIndex: number | null;
 };
 
-const store: Store = {
+const KEY = "grammar-drill:state:v1";
+
+const empty: Persisted = {
   setup: null,
   questions: null,
   answers: null,
   result: null,
+  deadline: null,
+  currentIndex: null,
 };
+
+function read(): Persisted {
+  if (typeof window === "undefined") return { ...empty };
+  try {
+    const raw = window.localStorage.getItem(KEY);
+    if (!raw) return { ...empty };
+    const parsed = JSON.parse(raw) as Partial<Persisted>;
+    return { ...empty, ...parsed };
+  } catch {
+    return { ...empty };
+  }
+}
+
+function write(state: Persisted) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(KEY, JSON.stringify(state));
+  } catch {
+    // ignore quota / privacy mode errors
+  }
+}
+
+function patch(updates: Partial<Persisted>) {
+  const next = { ...read(), ...updates };
+  write(next);
+}
 
 export const examStore = {
   setSetup(setup: ExamSetup) {
-    store.setup = setup;
+    patch({ setup });
   },
   getSetup() {
-    return store.setup;
+    return read().setup;
   },
   setQuestions(qs: Question[]) {
-    store.questions = qs;
+    patch({ questions: qs });
   },
   getQuestions() {
-    return store.questions;
+    return read().questions;
   },
   setAnswers(a: Record<string, string>) {
-    store.answers = a;
+    patch({ answers: a });
   },
   getAnswers() {
-    return store.answers;
+    return read().answers;
   },
   setResult(r: SubmitResponse) {
-    store.result = r;
+    patch({ result: r });
   },
   getResult() {
-    return store.result;
+    return read().result;
   },
+  setDeadline(ts: number | null) {
+    patch({ deadline: ts });
+  },
+  getDeadline() {
+    return read().deadline;
+  },
+  setCurrentIndex(i: number) {
+    patch({ currentIndex: i });
+  },
+  getCurrentIndex() {
+    return read().currentIndex;
+  },
+  // Clear only in-progress exam state (keep nothing)
   reset() {
-    store.setup = null;
-    store.questions = null;
-    store.answers = null;
-    store.result = null;
+    write({ ...empty });
+  },
+  // Clear in-progress fields but keep result + setup (used after submit)
+  clearInProgress() {
+    const cur = read();
+    write({
+      ...cur,
+      questions: null,
+      answers: null,
+      deadline: null,
+      currentIndex: null,
+    });
   },
 };
